@@ -6,56 +6,175 @@ const roles = [
 {id:'product',name:'Продуктовая аналитика',short:'Проверить пользу изменений',color:'#ffc895',about:'Исследовать поведение пользователей и измерять, помогают ли изменения продукту и бизнесу.',daily:'Воронки, удержание, пользовательские события, метрики и анализ экспериментов.',reality:'Идея может не сработать, а данных для уверенного вывода может не хватить. Важно не выдавать совпадение за причину.',try:'Выбери приложение. Сформулируй гипотезу улучшения регистрации, основную метрику и метрику, которую нельзя ухудшить. Опиши сравнение двух вариантов и причины, по которым вывод может оказаться ненадёжным.',skills:'SQL, статистика, метрики продукта, A/B-тесты и коммуникация.'}
 ];
 const questions = [
-  [
-    "business",
-    "Человек говорит: «Мне неудобно». Тебе интересно расспросить его и понять, что именно мешает?"
-  ],
-  [
-    "data",
-    "Расходы за месяц выросли. Хочется разобрать покупки и найти, на что ушли деньги?"
-  ],
-  [
-    "systems",
-    "Тебе дают спроектировать заказ еды в приложении. Интересно расписать, какие данные приложение передаст ресторану и курьеру?"
-  ],
-  [
-    "product",
-    "Люди скачивают приложение и уходят. Интересно по их действиям найти, на каком шаге они теряют интерес?"
-  ],
-  [
-    "systems",
-    "При оплате заказа пропал интернет. Тебе интересно продумать, что приложение должно сделать дальше?"
-  ],
-  [
-    "business",
-    "Два отдела хотят разного. Тебе интересно разобраться в их пожеланиях и помочь договориться?"
-  ],
-  [
-    "product",
-    "Команда поменяла экран регистрации. Хочется проверить, стало ли больше людей доходить до конца?"
-  ],
-  [
-    "data",
-    "В таблице есть ошибки и повторяющиеся строки. Ты готов(а) их разобрать, чтобы получить верные цифры?"
-  ],
-  [
-    "business",
-    "Заявка ходит между сотрудниками несколько дней. Интересно понять, где она застревает и как это исправить?"
-  ],
-  [
-    "systems",
-    "Ты готов(а) подробно описать, как должна работать функция, включая ошибки и необычные случаи?"
-  ],
-  [
-    "data",
-    "Тебе интересно найти закономерность в цифрах и объяснить её другим простыми словами?"
-  ],
-  [
-    "product",
-    "Ты готов(а) сравнить два варианта функции, даже если окажется, что твой любимый вариант работает хуже?"
-  ]
-].map(([role,text],i)=>({id:i,role,text}));
-function calculate(answers){return roles.map(role=>{const values=questions.filter(q=>q.role===role.id).map(q=>answers[q.id]).filter(v=>Number.isInteger(v)&&v>=0&&v<=3);return {...role,count:values.length,score:values.length?values.reduce((a,b)=>a+b,0)/values.length*3:0};}).sort((a,b)=>b.score-a.score);}
+  {
+    "id": 0,
+    "title": "В доставке часто путают заказы. Что тебе ближе разобрать?",
+    "options": [
+      {
+        "role": "business",
+        "text": "Кто принимает и передаёт заказ — и где люди понимают друг друга по-разному."
+      },
+      {
+        "role": "systems",
+        "text": "Как приложение передаёт состав заказа кухне — и что происходит при изменении заказа."
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "title": "После обновления магазина продажи упали. Что выберешь?",
+    "options": [
+      {
+        "role": "data",
+        "text": "Сравнить продажи по дням и товарам, проверить цифры и найти, где именно спад."
+      },
+      {
+        "role": "product",
+        "text": "Сравнить путь покупателей до и после обновления: на каком шаге стали чаще уходить."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "В небольшом кафе хотят сократить очереди. Какую задачу ты бы взял(а)?",
+    "options": [
+      {
+        "role": "business",
+        "text": "Посмотреть, как сотрудники принимают заказы, и обсудить, что мешает работать быстрее."
+      },
+      {
+        "role": "data",
+        "text": "Сравнить время ожидания в разные часы и посчитать, когда очередь самая длинная."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "В приложении появится оплата частями. Какую задачу возьмёшь?",
+    "options": [
+      {
+        "role": "systems",
+        "text": "Разобрать, что произойдёт при отказе банка, повторном нажатии и отмене покупки."
+      },
+      {
+        "role": "product",
+        "text": "Проверить, помогает ли оплата частями чаще завершать покупку и как меняется сумма заказов."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Запись в салон хотят сделать удобнее. Что бы ты предпочёл(ла)?",
+    "options": [
+      {
+        "role": "business",
+        "text": "Выяснить у администратора и клиентов, что мешает записи, и согласовать изменения."
+      },
+      {
+        "role": "product",
+        "text": "Сравнить два варианта записи и посмотреть, в каком больше людей доходит до подтверждения."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "В двух отчётах разное число заказов. В чём тебе интереснее разобраться?",
+    "options": [
+      {
+        "role": "systems",
+        "text": "Какие статусы есть у заказа и когда приложение должно считать его оформленным."
+      },
+      {
+        "role": "data",
+        "text": "Из каких записей собран каждый отчёт, где пропуски и почему расчёты расходятся."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Команда запускает возврат товара. Чем тебе ближе заняться?",
+    "options": [
+      {
+        "role": "systems",
+        "text": "Расписать шаги в приложении: заявка, проверка, возврат денег и возможные сбои."
+      },
+      {
+        "role": "business",
+        "text": "Договориться с поддержкой и складом, кто за что отвечает и какие правила возврата нужны."
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Есть данные о клиентах подписки. Какую задачу выбираешь?",
+    "options": [
+      {
+        "role": "product",
+        "text": "Выяснить, какие действия связаны с продлением подписки, и придумать, что проверить в продукте."
+      },
+      {
+        "role": "data",
+        "text": "Собрать надёжный отчёт: сколько клиентов пришло, ушло и сколько денег осталось за месяц."
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Тебе предлагают помочь с работой магазина. Какой итог приятнее получить?",
+    "options": [
+      {
+        "role": "data",
+        "text": "Понятный расчёт: какие товары заканчиваются быстрее и сколько нужно заказывать."
+      },
+      {
+        "role": "business",
+        "text": "Понятный процесс: кто замечает нехватку товара, кто заказывает и кто проверяет поставку."
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Люди не заканчивают регистрацию. Какую задачу взял(а) бы ты?",
+    "options": [
+      {
+        "role": "product",
+        "text": "Найти шаг с наибольшим числом уходов и проверить, поможет ли его упрощение."
+      },
+      {
+        "role": "systems",
+        "text": "Описать, как сохранять введённые данные и продолжать регистрацию после ошибки или обрыва связи."
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "На обсуждении новой функции тебе интереснее…",
+    "options": [
+      {
+        "role": "product",
+        "text": "Разобраться, как поймём, что функция помогает пользователям, и как измерим её эффект."
+      },
+      {
+        "role": "business",
+        "text": "Разобраться, чью проблему решаем, что именно нужно людям и о чём команда должна договориться."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Что из этих двух задач тебе ближе довести до конца?",
+    "options": [
+      {
+        "role": "data",
+        "text": "Проверить таблицу с ошибками и получить расчёт, которому можно доверять."
+      },
+      {
+        "role": "systems",
+        "text": "Проверить описание функции и разобрать исключения, чтобы разработчикам не пришлось гадать."
+      }
+    ]
+  }
+];
 const followups=[
 {title:'В сервисе доставки стали чаще отменять заказы. Какую задачу ты бы выбрал(а)?',hint:'Все варианты полезны команде. Выбери тот, которым тебе интереснее заняться лично.',tasks:{
 business:'Поговорить с клиентами и сотрудниками, понять их проблемы и договориться, что нужно изменить.',
@@ -79,9 +198,11 @@ systems:{headline:'Тебе ближе системный анализ',line:'П
 data:{headline:'Тебе ближе аналитика данных',line:'Добраться до надёжных цифр, увидеть закономерность и объяснить, что она означает.',reasons:['Разбирать цифры, чтобы понять, что именно изменилось.','Приводить данные в порядок и проверять их качество.','Находить закономерности и объяснять выводы понятным языком.']},
 product:{headline:'Тебе ближе продуктовая аналитика',line:'Понять поведение пользователей и проверить, какое изменение действительно помогает.',reasons:['Искать, на каком шаге пользователи теряют интерес.','Измерять эффект изменения в приложении.','Сравнивать варианты и пересматривать идею по результатам.']}
 };
-function baseState(answers){const ranked=calculate(answers),enough=ranked.every(r=>r.count>=2),low=ranked[0].score<4.5;return {ranked,enough,low,candidates:enough&&!low?ranked.filter(r=>r.score>=4.5&&ranked[0].score-r.score<=1.5):[]};}
+function validAnswer(q,value){return value==='equal'||q.options.some(o=>o.role===value);}
+function calculate(answers){return roles.map(role=>{let count=0,points=0;for(const q of questions){if(!q.options.some(o=>o.role===role.id)||!validAnswer(q,answers[q.id]))continue;count++;if(answers[q.id]===role.id)points++;else if(answers[q.id]==='equal')points+=0.5;}return {...role,count,points,score:count?points/count*6:0};}).sort((a,b)=>b.score-a.score);}
+function baseState(answers){const ranked=calculate(answers),answered=questions.filter(q=>validAnswer(q,answers[q.id])).length,enough=answered>=8&&ranked.every(r=>r.count>=3);return {ranked,answered,enough,low:false,candidates:enough?ranked.filter(r=>ranked[0].score-r.score<=1):[]};}
 function clarificationState(answers,picks=[]){const base=baseState(answers);const votes=Object.fromEntries(base.candidates.map(r=>[r.id,0]));for(const pick of picks.slice(0,3))if(Object.hasOwn(votes,pick))votes[pick]++;const ordered=base.candidates.slice().sort((a,b)=>votes[b.id]-votes[a.id]||b.score-a.score);const winner=ordered.length&&votes[ordered[0].id]>=2&&votes[ordered[0].id]>(votes[ordered[1]?.id]||0)?ordered[0]:null;return {...base,votes,ordered,winner,needsMore:base.candidates.length>1&&picks.length<3&&(picks.length<2||!winner)};}
-function outcome(answers,picks=[]){const s=clarificationState(answers,picks);let primary=null,profiles=[];if(s.enough&&!s.low){if(s.candidates.length===1)primary=s.ranked[0];else primary=s.winner;if(primary)profiles=[primary];else{const maxVotes=Math.max(0,...Object.values(s.votes));profiles=s.ordered.filter(r=>!maxVotes||s.votes[r.id]===maxVotes);if(profiles.length===1)profiles=s.candidates;}}return {...s,primary,profiles};}
-function evidence(roleId,answers,picks=[]){const local=questions.filter(q=>q.role===roleId);const items=local.map((q,i)=>({value:answers[q.id],text:portraits[roleId].reasons[i]})).filter(x=>x.value>=2&&x.value<=3).sort((a,b)=>b.value-a.value).map(x=>x.text);picks.slice(0,3).forEach((pick,i)=>{if(pick===roleId)items.push(followups[i].tasks[roleId]);});return items.slice(0,3);}
-if(typeof module!=='undefined')module.exports={roles,questions,calculate,followups,portraits,baseState,clarificationState,outcome,evidence};
+function outcome(answers,picks=[]){const s=clarificationState(answers,picks);let primary=null,profiles=[];if(s.enough){if(s.candidates.length===1)primary=s.ranked[0];else primary=s.winner;if(primary)profiles=[primary];else{const maxVotes=Math.max(0,...Object.values(s.votes));profiles=s.ordered.filter(r=>!maxVotes||s.votes[r.id]===maxVotes);if(profiles.length===1)profiles=s.candidates;}}return {...s,primary,profiles};}
+function evidence(roleId,answers,picks=[]){const items=questions.filter(q=>answers[q.id]===roleId).map(q=>q.options.find(o=>o.role===roleId).text);picks.slice(0,3).forEach((pick,i)=>{if(pick===roleId)items.push(followups[i].tasks[roleId]);});if(!items.length&&questions.some(q=>answers[q.id]==='equal'&&q.options.some(o=>o.role===roleId)))items.push('В сравнениях с этим направлением ты отмечал(а) равный интерес — явного предпочтения пока нет.');return items.slice(0,3);}
+if(typeof module!=='undefined')module.exports={roles,questions,calculate,followups,portraits,baseState,clarificationState,outcome,evidence,validAnswer};
 
