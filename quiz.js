@@ -16,11 +16,11 @@ const questions = [
   ],
   [
     "systems",
-    "Ты заказываешь еду в приложении. Интересно разобраться, как заказ попадает в ресторан и к курьеру?"
+    "Тебе дают спроектировать заказ еды в приложении. Интересно расписать, какие данные приложение передаст ресторану и курьеру?"
   ],
   [
     "product",
-    "Люди скачивают приложение и сразу уходят. Интересно выяснить, что их отталкивает?"
+    "Люди скачивают приложение и уходят. Интересно по их действиям найти, на каком шаге они теряют интерес?"
   ],
   [
     "systems",
@@ -56,5 +56,32 @@ const questions = [
   ]
 ].map(([role,text],i)=>({id:i,role,text}));
 function calculate(answers){return roles.map(role=>{const values=questions.filter(q=>q.role===role.id).map(q=>answers[q.id]).filter(v=>Number.isInteger(v)&&v>=0&&v<=3);return {...role,count:values.length,score:values.length?values.reduce((a,b)=>a+b,0)/values.length*3:0};}).sort((a,b)=>b.score-a.score);}
-if(typeof module!=='undefined')module.exports={roles,questions,calculate};
+const followups=[
+{title:'В сервисе доставки стали чаще отменять заказы. Какую задачу ты бы выбрал(а)?',hint:'Все варианты полезны команде. Выбери тот, которым тебе интереснее заняться лично.',tasks:{
+business:'Поговорить с клиентами и сотрудниками, понять их проблемы и договориться, что нужно изменить.',
+systems:'Расписать, как должны меняться статусы заказа и что передают друг другу приложение, оплата и ресторан.',
+data:'Проверить таблицы заказов и выяснить, где, когда и при каких условиях выросло число отмен.',
+product:'Найти, на каком шаге люди отменяют заказ, и придумать, какое изменение стоит проверить.'}},
+{title:'Тебе дают день на одну задачу. Какой результат хочется получить к вечеру?',hint:'Что тебе приятнее сделать самому, а не просто увидеть готовым?',tasks:{
+business:'Понятный план нового процесса: кто что делает, чьи проблемы решаем и о чём договорились.',
+systems:'Точное описание функции для разработчика: данные, шаги, правила и поведение при ошибках.',
+data:'Проверенный расчёт и понятный отчёт, который отвечает на конкретный вопрос бизнеса.',
+product:'План сравнения двух вариантов функции: что измеряем и как поймём, какой вариант полезнее.'}},
+{title:'А с какой сложной частью работы ты скорее готов(а) возиться?',hint:'Выбери не самое красивое название, а работу, к которой готов(а) возвращаться.',tasks:{
+business:'Снова уточнять пожелания людей и разбирать противоречия, пока все не договорятся.',
+systems:'Разбирать редкие ошибки и технические ограничения, чтобы в описании функции не осталось пробелов.',
+data:'Искать ошибки в данных и перепроверять расчёты, прежде чем кому-то показывать выводы.',
+product:'Разбираться, хватает ли данных эксперимента для вывода, даже если хочется быстрее запустить идею.'}}
+];
+const portraits={
+business:{headline:'Тебе ближе бизнес-анализ',line:'Разобраться, что людям нужно, и превратить разрозненные пожелания в понятный план.',reasons:['Разбираться в настоящей проблеме человека, а не сразу предлагать решение.','Помогать людям с разными интересами договориться.','Находить задержки в работе и менять процесс.']},
+systems:{headline:'Тебе ближе системный анализ',line:'Продумать, как всё должно работать, — до данных, правил и неочевидных ошибок.',reasons:['Продумывать обмен данными между частями приложения.','Разбирать, как системе вести себя при сбое.','Описывать функцию достаточно точно, чтобы её можно было реализовать.']},
+data:{headline:'Тебе ближе аналитика данных',line:'Добраться до надёжных цифр, увидеть закономерность и объяснить, что она означает.',reasons:['Разбирать цифры, чтобы понять, что именно изменилось.','Приводить данные в порядок и проверять их качество.','Находить закономерности и объяснять выводы понятным языком.']},
+product:{headline:'Тебе ближе продуктовая аналитика',line:'Понять поведение пользователей и проверить, какое изменение действительно помогает.',reasons:['Искать, на каком шаге пользователи теряют интерес.','Измерять эффект изменения в приложении.','Сравнивать варианты и пересматривать идею по результатам.']}
+};
+function baseState(answers){const ranked=calculate(answers),enough=ranked.every(r=>r.count>=2),low=ranked[0].score<4.5;return {ranked,enough,low,candidates:enough&&!low?ranked.filter(r=>r.score>=4.5&&ranked[0].score-r.score<=1.5):[]};}
+function clarificationState(answers,picks=[]){const base=baseState(answers);const votes=Object.fromEntries(base.candidates.map(r=>[r.id,0]));for(const pick of picks.slice(0,3))if(Object.hasOwn(votes,pick))votes[pick]++;const ordered=base.candidates.slice().sort((a,b)=>votes[b.id]-votes[a.id]||b.score-a.score);const winner=ordered.length&&votes[ordered[0].id]>=2&&votes[ordered[0].id]>(votes[ordered[1]?.id]||0)?ordered[0]:null;return {...base,votes,ordered,winner,needsMore:base.candidates.length>1&&picks.length<3&&(picks.length<2||!winner)};}
+function outcome(answers,picks=[]){const s=clarificationState(answers,picks);let primary=null,profiles=[];if(s.enough&&!s.low){if(s.candidates.length===1)primary=s.ranked[0];else primary=s.winner;if(primary)profiles=[primary];else{const maxVotes=Math.max(0,...Object.values(s.votes));profiles=s.ordered.filter(r=>!maxVotes||s.votes[r.id]===maxVotes);if(profiles.length===1)profiles=s.candidates;}}return {...s,primary,profiles};}
+function evidence(roleId,answers,picks=[]){const local=questions.filter(q=>q.role===roleId);const items=local.map((q,i)=>({value:answers[q.id],text:portraits[roleId].reasons[i]})).filter(x=>x.value>=2&&x.value<=3).sort((a,b)=>b.value-a.value).map(x=>x.text);picks.slice(0,3).forEach((pick,i)=>{if(pick===roleId)items.push(followups[i].tasks[roleId]);});return items.slice(0,3);}
+if(typeof module!=='undefined')module.exports={roles,questions,calculate,followups,portraits,baseState,clarificationState,outcome,evidence};
 
