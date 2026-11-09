@@ -1,5 +1,6 @@
 const app=document.querySelector('#app');
 let answers=Array(questions.length).fill(null),current=0,started=false;
+let completionTracked = false;
 document.querySelector('#method').onclick=()=>document.querySelector('#info').showModal();
 document.querySelector('#close').onclick=()=>document.querySelector('#info').close();
 function focusTitle(){document.querySelector('h1').focus();window.scrollTo({top:0,behavior:'instant'});}
@@ -16,6 +17,10 @@ document.querySelector('#next').onclick=()=>{if(picks[extraIndex]===undefined)re
 function reasonsHTML(role){const items=evidence(role.id,answers,picks);return `<ul class="reasons">${items.map(text=>`<li>${text}</li>`).join('')}</ul>`;}
 function roleDetails(r){return `<article><h2>${r.name}</h2><p>${r.about}</p><h3>Что делать на работе</h3><p>${r.daily}</p><h3>Обратная сторона</h3><p>${r.reality}</p><div class="task"><h3>Попробуй за 30–60 минут ↗</h3><p>${r.try}</p></div><p class="small">Что изучать: ${r.skills}</p></article>`;}
 function finish(){const s=outcome(answers,picks);const {ranked,primary,profiles}=s;let title,summary;
+if (s.enough && !completionTracked) {
+  completionTracked = true;
+  quizAnalytics?.complete();
+}
 if(!s.enough){title='Пока не хватает ответов';summary='Нужно хотя бы 8 сравнений с выбором или равным интересом, и минимум 3 сравнения на каждое направление. Можно вернуться к вопросам или начать с мини-задач ниже.';}
 else if(s.low){title='Твоя точка старта ещё впереди';summary='Пока ни одно направление не вызвало устойчивого интереса. Не выбирай обучение только по названию: попробуй небольшую задачу и посмотри, захочется ли продолжить.';}
 else if(primary){title=portraits[primary.id].headline;summary=portraits[primary.id].line;}
@@ -27,7 +32,7 @@ const neighbour=secondary?`<section class="neighbour"><p class="eyebrow">${s.can
 const displayOrder=primary?[primary,...ranked.filter(r=>r.id!==primary.id)]:ranked;
 app.innerHTML=`<section class="results">${hero}${next}${neighbour}<p class="small">Это вывод об интересе и выборе задач. Тест не проверяет профессиональные навыки и не предсказывает успех в работе.</p><details class="breakdown"><summary>Посмотреть баллы и логику результата</summary><p class="small">Каждое направление участвует в шести сравнениях. Выбор его задачи даёт 1 балл, равный интерес — по 0,5 обоим. Пропуск исключается. При пропусках баллы приводятся к шкале 6. Это относительное предпочтение, а не измерение навыков или общего интереса к работе. Уточнения учитываются отдельно.</p><div class="scores">${ranked.map(r=>`<div><div class="score-label"><span>${r.name}</span><b>${r.count<3?'мало ответов':r.score.toLocaleString('ru-RU',{maximumFractionDigits:1})+' / 6'}</b></div><div class="bar"><i style="width:${r.count<3?0:r.score/6*100}%;background:${r.color}"></i></div><small>${r.count} из 6 сравнений с ответом${r.count<6?' · оценка неполная':''}</small></div>`).join('')}</div>${picks.length?`<h3>Как ты выбирал(а) в уточнениях</h3><ol>${picks.map((pick,i)=>`<li>${followups[i].title}<br><strong>${roles.find(r=>r.id===pick)?.name||(pick==='equal'?'Равный интерес':'Пока без выбора')}</strong></li>`).join('')}</ol>`:''}</details><details class="all-roles" ${(!s.enough||s.low)?'open':''}><summary>Подробнее о четырёх профессиях</summary><div class="role-grid">${displayOrder.map(roleDetails).join('')}</div></details><nav class="result-actions"><button id="review">← Изменить ответы</button><button class="primary" id="share">Поделиться результатом ↗</button><button id="restart">Пройти заново</button></nav><p id="share-status" role="status"></p><p class="small">Профессии пересекаются: всем аналитикам нужны логика, внимание к деталям и общение. Здесь представлены четыре направления; финансовая, маркетинговая и другие специализации не входят в тест.</p></section>`;
 document.querySelector('#review').onclick=()=>{current=0;picks=[];render();focusTitle();};
-document.querySelector('#restart').onclick=()=>{answers.fill(null);picks=[];current=0;home();focusTitle();};
+document.querySelector('#restart').onclick=()=>{answers.fill(null);picks=[];current=0;completionTracked=false;home();focusTitle();};
 document.querySelector('#share').onclick=async()=>{const text=`Мой результат в тесте «Какой ты аналитик?»: ${primary?primary.name:profiles.length?profiles.map(r=>r.name).join(' + '):title}. Это ориентир по интересам.`,url=location.href.split('?')[0].split('#')[0];try{if(navigator.share)await navigator.share({title:'Какой ты аналитик?',text,url});else{await navigator.clipboard.writeText(text+' '+url);document.querySelector('#share-status').textContent='Результат и ссылка скопированы.';}}catch(e){if(e.name!=='AbortError')document.querySelector('#share-status').textContent='Не удалось скопировать автоматически. Скопируй ссылку из адресной строки.';}};}
 home();
 
